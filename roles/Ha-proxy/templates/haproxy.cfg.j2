@@ -1,0 +1,55 @@
+global
+    log /dev/log local0
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode http
+    option httplog
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
+
+frontend http_front
+    bind *:80
+
+    acl is_webapp path_beg /webapp
+    acl is_sample path_beg /sample
+    use_backend tomcat1_backend if is_webapp
+    use_backend tomcat2_backend if is_sample
+
+    acl host_mysite1 hdr(host) -i www.mysite1.org
+    acl host_mysite2 hdr(host) -i www.mysite2.org
+    acl host_mysite3 hdr(host) -i www.mysite3.org
+
+    use_backend apache_site1 if host_mysite1
+    use_backend apache_site2 if host_mysite2
+    use_backend apache_site3 if host_mysite3
+
+backend tomcat1_backend
+    balance roundrobin
+    server tomcat1 192.168.100.11:8080 check
+
+backend tomcat2_backend
+    balance roundrobin
+    server tomcat2 192.168.100.11:8081 check
+
+backend apache_site1
+    balance roundrobin
+    server site1 192.168.100.12:80 check
+
+backend apache_site2
+    balance roundrobin
+    server site2 192.168.100.12:88 check
+
+backend apache_site3
+    balance roundrobin
+    server site3 192.168.100.12:82 check
+
+listen stats
+    bind *:8181
+    stats enable
+    stats uri /stats
+    stats auth admin:admin

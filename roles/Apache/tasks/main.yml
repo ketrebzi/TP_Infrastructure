@@ -1,0 +1,40 @@
+- name: Installer Apache
+  apt:
+    name: apache2
+    state: present
+    update_cache: yes
+
+- name: Créer les répertoires des sites
+  file:
+    path: "/var/www/{{ item }}"
+    state: directory
+  loop:
+    - mysite1
+    - mysite2
+    - mysite3
+
+- name: Copier les index.html
+  copy:
+    src: "{{ item.src }}"
+    dest: "/var/www/{{ item.dest }}/index.html"
+  loop:
+    - { src: 'files/index1.html', dest: 'mysite1' }
+    - { src: 'files/index2.html', dest: 'mysite2' }
+    - { src: 'files/index3.html', dest: 'mysite3' }
+
+- name: Copier le fichier de configuration Apache
+  template:
+    src: mysites.conf.j2
+    dest: /etc/apache2/sites-available/mysites.conf
+
+- name: Activer le site
+  command: a2ensite mysites.conf
+
+- name: Désactiver le site par défaut
+  command: a2dissite 000-default.conf
+  ignore_errors: yes
+
+- name: Redémarrer Apache
+  service:
+    name: apache2
+    state: restarted

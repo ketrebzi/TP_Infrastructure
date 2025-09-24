@@ -1,0 +1,19 @@
+- name: Installer Tomcat
+  apt:
+    name: tomcat9
+    state: present
+
+- name: Déployer webapp.war sur Tomcat1
+  copy:
+    src: files/webapp.war
+    dest: /var/lib/tomcat9/webapps/webapp.war
+
+- name: Déployer sample.war sur Tomcat2
+  copy:
+    src: files/sample.war
+    dest: /var/lib/tomcat9/webapps/sample.war
+
+- name: Redémarrer Tomcat
+  service:
+    name: tomcat9
+    state: restarted
